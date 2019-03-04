@@ -1,6 +1,8 @@
 package com.example.flickster.adapters;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -15,7 +17,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.bumptech.glide.Glide;
@@ -25,15 +29,25 @@ import com.bumptech.glide.load.Transformation;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.engine.Resource;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.example.flickster.DetailActivity;
+import com.example.flickster.MovieActivity;
 import com.example.flickster.R;
 import com.example.flickster.models.Movie;
+
+import org.parceler.Parcels;
 
 import java.security.MessageDigest;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Optional;
+import butterknife.Unbinder;
 import jp.wasabeef.glide.transformations.BlurTransformation;
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
 import myglide.MyAppGlideModule;
 
 
@@ -77,19 +91,19 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
 
     class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView tvTitle;
-        TextView tvOverview;
-        ImageView ivPoster;
+        @BindView(R.id.tvTitle) TextView tvTitle;
+        @BindView(R.id.tvOverview) TextView tvOverview;
+        @BindView(R.id.ivPoster) ImageView ivPoster;
+        @BindView(R.id.container) RelativeLayout container;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvOverview = itemView.findViewById(R.id.tvOverview);
-            ivPoster = itemView.findViewById(R.id.ivPoster);
+            ButterKnife.bind(this, itemView);
 
         }
 
-        public void bind(Movie movie) {
+        public void bind(final Movie movie) {
             tvTitle.setText(movie.getTitle());
             tvOverview.setText(movie.getOverview());
             //Reference the backdrop path if phone is in landscape
@@ -125,9 +139,12 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
 //            }).start();
 
 
+            int radius = 30; // corner radius, higher value = more rounded
+            int margin = 10;
             //Log.d("smile", movie.getPosterPath());
             Glide.with(context)
                     .load(imageUrl)
+
 //                    .listener(new RequestListener<Drawable>() {
 //                        @Override
 //                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -142,7 +159,21 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
 //                        }
 //                    })
                     .fitCenter()
+                    .transform(new RoundedCornersTransformation(radius, margin))
                     .into(ivPoster);
+            //Add click listener on the whole row
+
+            container.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //Navigate to detail activity on tap
+                    Intent i = new Intent(context, DetailActivity.class);
+
+                    i.putExtra("movie", Parcels.wrap(movie));
+                    context.startActivity(i);
+
+                }
+            });
 
 
         }
